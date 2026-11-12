@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.locks.ReentrantLock;
 // TODO (Feature 1 and Feature 2): import java.util.concurrent.locks.ReentrantLock;
 // TODO (Feature 3):               import java.util.concurrent.Semaphore;
 
@@ -114,14 +115,19 @@ class ReadyQueue {
     private final Map<Thread, Process> map = new HashMap<>();     // thread -> process (same idea as Assignment 1)
 
     // TODO Feature 1: declare the lock protecting `list` and `map` here
+    private final ReentrantLock queueLock = new ReentrantLock();
+    
     // TODO Feature 3: declare the counting semaphore that counts the processes waiting in the ready queue here
     // Add a process to the ready queue (new process, or a process that did not finish its quantum)
     public void add(Process process) {
-        // TODO Feature 1: protect this critical section
+        queueLock.lock();
+        try {
         Thread thread = new Thread(process);
         list.add(thread);
         map.put(thread, process);
-
+        } finally {
+            queueLock.unlock();
+        }
         // TODO Feature 3: signal that one more process is available in the queue
         System.out.println(Colors.BLUE + "  ➕ " + Colors.BOLD + Colors.CYAN + process.getName() + Colors.RESET
                 + Colors.BLUE + " (Priority: " + process.getPriority() + ") added to ready queue" + Colors.RESET
@@ -131,7 +137,8 @@ class ReadyQueue {
 
     // Remove and return the thread at the head of the queue (or null if the queue is empty)
     public Thread poll() {
-        // TODO Feature 1: protect this critical section
+        queueLock.lock();
+        try{
         if (list.isEmpty()) {
             return null;
         }
@@ -139,16 +146,24 @@ class ReadyQueue {
         RaceWindow.pause();                 //    <- another CPU can read the SAME head here
         list.removeFirst();                 // 2) remove the head (it may be a different thread by now!)
         return head;
+    } finally {
+        queueLock.unlock();
+    }
     }
 
     public Process processOf(Thread thread) {
-        // TODO Feature 1: protect this access
-        return map.get(thread);
+       queueLock.lock();
+       try {
+        return map.get(thread); }
+        finally{
+            queueLock.unlock();
+        }
     }
 
     // Names of the processes currently waiting in the queue (used to display the ready queue)
     public String snapshot() {
-        // TODO Feature 1: protect this critical section
+        queueLock.lock();
+        try{
         StringBuilder sb = new StringBuilder();
         for (Thread t : list) {
             if (sb.length() > 0) {
@@ -157,7 +172,10 @@ class ReadyQueue {
             sb.append(map.get(t).getName());
         }
         return sb.length() == 0 ? "empty" : sb.toString();
-    }
+        } finally {
+            queueLock.unlock();
+        }
+}
 }
 
 // Class representing a process (same as Assignment 1) - executes ONE time quantum per thread start
