@@ -119,7 +119,7 @@
 - Forked the starter repository and renamed it
 - Changed student ID on line 304 to my actual ID (441234567)
 - Ran the original program: 4 CPUs started, three of them picked `P1`, then `IllegalThreadStateException` and the watchdog stopped the program
-- Saved the output in a text file for Question 1
+- Saved the output in a text file for 
 - Committed and pushed: `Set my student ID: 441234567`
 
 **Challenges**: I did not understand why the same process was picked by three CPUs
@@ -298,8 +298,15 @@
 
 **Your Answer:** *(3-5 sentences)*
 
-[Write your answer here.]
-
+[```
+═══ VERIFICATION (expected values are computed from YOUR seed) ═══
+  Context switches (quanta executed)     expected 42       observed 0        ? MISMATCH
+  Completed processes                    expected 20       observed 0        ? MISMATCH
+  Total service time (ms)                expected 127836   observed 0        ? MISMATCH
+  Busy-waiting polls (must be 0)         expected 0        observed 0        ?
+  ? At least one check failed (see the ? lines above): a race condition or busy waiting is still present. 
+  ```]
+  
 Verification block of the **original starter**:
 ```
 [Paste the verification block (or the exception/watchdog message) of the starter here]
