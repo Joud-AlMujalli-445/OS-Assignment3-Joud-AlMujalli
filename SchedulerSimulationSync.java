@@ -7,8 +7,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.ReentrantLock;
-// TODO (Feature 1 and Feature 2): import java.util.concurrent.locks.ReentrantLock;
-// TODO (Feature 3):               import java.util.concurrent.Semaphore;
 
 // ANSI Color Codes for enhanced terminal output (same as Assignment 1)
 class Colors {
@@ -67,7 +65,7 @@ class SharedStats {
     // Number of times a CPU found the ready queue empty and polled it again (busy waiting). Must be 0 after Feature 3.
     static final java.util.concurrent.atomic.AtomicInteger busyWaitPolls = new java.util.concurrent.atomic.AtomicInteger(0);
 
-    // TODO Feature 2: declare the lock(s) protecting the three shared variables above here.
+   
    // Think about it: ONE lock for the three variables, or ONE lock PER variable? (you must justify it in MY_WORK.md)
 private static final ReentrantLock contextSwitchLock = new ReentrantLock();
 private static final ReentrantLock completedProcessLock = new ReentrantLock();
@@ -136,7 +134,8 @@ class ReadyQueue {
     private final LinkedList<Thread> list = new LinkedList<>();   // FIFO queue of threads
     private final Map<Thread, Process> map = new HashMap<>();     // thread -> process (same idea as Assignment 1)
 
-    // TODO Feature 1: declare the lock protecting `list` and `map` here
+    
+
     private final ReentrantLock queueLock = new ReentrantLock();
     
     //  Feature 3:counts the processes waiting in the ready queue (0 at start: queue is empty)
