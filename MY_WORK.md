@@ -339,27 +339,30 @@ I would start earlier and spread the work over more days. I would run the progra
 
 **Your Answer:** *(3-5 sentences)*
 
-[```
-═══ VERIFICATION (expected values are computed from YOUR seed) ═══
-  Context switches (quanta executed)     expected 42       observed 0        ? MISMATCH
-  Completed processes                    expected 20       observed 0        ? MISMATCH
-  Total service time (ms)                expected 127836   observed 0        ? MISMATCH
-  Busy-waiting polls (must be 0)         expected 0        observed 0        ?
-  ? At least one check failed (see the ? lines above): a race condition or busy waiting is still present. 
-  ```]
+
   
 Verification block of the **original starter**:
 ```
-[Paste the verification block (or the exception/watchdog message) of the starter here]
+[═══ VERIFICATION (expected values are computed from YOUR seed) ═══
+  Context switches (quanta executed)   expected 42      observed 0   ✘ MISMATCH
+  Completed processes                  expected 20      observed 0   ✘ MISMATCH
+  Total service time (ms)              expected 127836  observed 0   ✘ MISMATCH
+  Busy-waiting polls (must be 0)       expected 0       observed 0   ✔
+  ✘ At least one check failed: a race condition or busy waiting is still present.]
 ```
 
 Verification block of **my final version**:
 ```
-[Paste the verification block of your final version here (all lines ✔)]
+[═══ VERIFICATION (expected values are computed from YOUR seed) ═══
+Context switches (quanta executed) expected 42 observed 42 ✔
+Completed processes expected 20 observed 20 ✔
+Total service time (ms) expected 127836 observed 127836 ✔
+Busy-waiting polls (must be 0) expected 0 observed 0 ✔
+✔ All shared values are consistent. ]
 ```
 
 **Explanation of the timeline:**
-[Explain the lost update step by step.]
+[In my starter run, all three counters were wrong by their full expected value: 42, 20 and 127836 were expected, but 0 was observed. The zeros appeared because the four CPUs crashed with a NullPointerException in ReadyQueue.snapshot() before they updated any counter. A lost update on contextSwitchCount happens like this: CPU-1 reads 12, RaceWindow.pause() delays it, CPU-2 also reads 12, CPU-1 writes 13, and then CPU-2 writes 13 too, so two quanta ran but the counter increased only once. On a real machine the same bug can happen without RaceWindow, because count++ is three steps (read, add, write) and the OS can stop a thread between any two of them, or two cores can run them at the same time. It is hard to detect because it depends on timing, so it appears only in some runs. ]
 
 ## Question 2: Critical Sections and Lock Granularity
 
@@ -369,12 +372,15 @@ Verification block of **my final version**:
 
 **Your Answer:** *(3-5 sentences)*
 
-[Write your answer here.]
+I protected the ready queue (list and map) with queueLock in add(), poll(), processOf() and snapshot(), and the three counters with one lock each: contextSwitchLock, completedProcessLock and serviceTimeLock. I used one lock per counter because the counters are independent, so a CPU updating totalServiceTime does not need to wait for a CPU updating contextSwitchCount; the trade-off is more locks to manage, but less waiting than one global lock. The queue has a different lock because it is a different shared structure, and if both used the same lock, a thread holding it during a slow operation would block all the other CPUs for no reason. Each lock gives mutual exclusion because only one thread can be between lock() and unlock(), and progress is kept because unlock() is always in finally. A default ReentrantLock is not fair, so bounded waiting is not guaranteed: a CPU could wait a long time while others keep taking the lock, although this did not happen in my runs.
 
 | Critical section (variable / method) | Lock used | Why it needs protection |
 |---|---|---|
-| [e.g., `ReadyQueue.poll()`] | [lock name] | [reason] |
-| [...] | [...] | [...] |
+|ReadyQueue.add(), poll(), processOf(), snapshot() (list, map)|queueLock|Two CPUs could read the same head, or the list could change while another CPU reads it|
+|incrementContextSwitch(), getContextSwitchCount() | contextSwitchLock | Read-modify-write on contextSwitchCount can lose an update |
+|incrementCompletedProcess(), getCompletedProcessCount() | completedProcessLock | A lost update would stop the CPUs from detecting the end |
+|addServiceTime(), getTotalServiceTime() | serviceTimeLock | Read-modify-write on totalServiceTime can lose an update |
+
 
 ## Question 3: Busy Waiting vs Semaphore
 
@@ -384,7 +390,7 @@ Verification block of **my final version**:
 
 **Your Answer:** *(3-5 sentences)*
 
-[Write your answer here.]
+In the starter, a CPU that found the queue empty slept 20 ms and polled again, which is busy waiting that wastes CPU time; in my starter run Busy-waiting polls was 0 only because the CPUs crashed before reaching that loop. In my final version the value of the semaphore readyCount represents the number of processes waiting in the ready queue, and its initial value is 0 because the queue is empty at the start. Right after the 20 initial add() calls its value is 20, and each acquire() before poll() decreases it by one. The last CPU calls release(totalCPUs) so every CPU blocked in acquire() wakes up, sees that all processes are completed, and stops. Without it, those CPUs would stay blocked forever on an empty queue, and the program would hang until the watchdog stopped it.
 
 ## Question 4: Classical Problems and Deadlock
 
@@ -395,24 +401,25 @@ Verification block of **my final version**:
 **Your Answer:** *(3-5 sentences)*
 
 **Classical problem and roles**:
-[Name the problem; who is the producer, who is the consumer?]
+It is the producer-consumer (bounded-buffer) problem. The producers are main, which adds the 20 initial processes, and the CPUs that put an unfinished process back with add(); the consumers are the CPUs that take a process with poll().
+
 
 **Semaphores for a bounded queue (name and initial value)**:
-[Name the three semaphores and their initial values.]
+mutex = 1 (mutual exclusion on the queue), empty = K (free slots, K is the capacity), and full = 0 (processes in the queue, like my readyCount).
 
 **Deadlock scenario and prevention**:
-[Describe the scenario and the necessary condition you would break.]
+If a producer takes the mutex before wait(empty) and the queue is full, it waits for a free slot while holding the mutex. A consumer needs the mutex to remove a process and free a slot, so both wait forever: deadlock. I would break the hold-and-wait condition by calling wait(empty) first and taking the mutex only after it, so no thread waits while holding the lock.
 
 ## Summary
 
 **Key concepts I understood through these questions:**
-1.
-2.
-3.
+1. A race condition is a lost update on shared data, and count++ is really three steps (read, add, write).
+2. A mutex lock gives mutual exclusion, and unlock() must always be inside finally.
+3. A counting semaphore lets a thread sleep instead of busy waiting, and it needs a shutdown signal like release(totalCPUs).
 
 **Concepts I need to study more:**
-1.
-2.
+1. Fair locks and bounded waiting (starvation).
+2. The four necessary conditions of deadlock and how to prevent each one.
 
 ---
 
