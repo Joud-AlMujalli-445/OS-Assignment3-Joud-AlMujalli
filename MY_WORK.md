@@ -122,11 +122,11 @@
 - Saved the output in a text file for 
 - Committed and pushed: `Set my student ID: 441234567`
 
-**Challenges**: I did not understand why the same process was picked by three CPUs
+**Challenges**:I did not understand why the same process was picked by three CPUs
 
 **Solution**: Read `ReadyQueue.poll()` again and found the `RaceWindow.pause()` between reading the head and removing it
 
-**Time spent**: 45 minutes
+**Time spent**:45 minutes
 
 ---
 
@@ -142,26 +142,34 @@ Set up my GitHub repository and development tools.
 - Committed and pushed: "set my student ID"
 
 **Challenges**:
- The JDK installer had JAVA_HOME disabled by default, and I was not sure which options to select.
+  The JDK installer had JAVA_HOME disabled by default, and I was not sure which options to select.
+
 **Solution**:
 I enabled the PATH and JAVA_HOME options, then checked the installation with java -version.
+
 **Time spent**:
 30 minutes
+
 ---
 
 ### Entry 2 - [November 12, 2026, 2:30 PM]
 **What I did**:
 Ran the original broken starter and saved its verification block.
+
 **Details**:
 - The starter crashed with a NullPointerException in ReadyQueue.snapshot() (line 153), thrown from CpuWorker.run()
 - The verification block showed expected 42 / 20 / 127836 but observed 0 for all three counters, because all 4 CPUs crashed
 - Pasted the verification block into MY_WORK.md (Question 1) and committed it
+- 
 **Challenges**:
 The VS Code terminal crashed with a PSReadLine error after I pressed Ctrl+C and other keys while the program was running.
+
 **Solution**:
 I closed the terminal, ran the program again, and only used Ctrl+C after selecting text.
+
 **Time spent**:
 1 hour
+
 ---
 
 ### Entry 3 - [November 12, 2026, 6:30 PM]
@@ -173,33 +181,41 @@ I closed the terminal, ran the program again, and only used Ctrl+C after selecti
 - Kept the return statements inside the try block so finally always unlocks
 - Committed: "protected the ready queue with a ReentrantLock"
 
-**Challenges**: The code showed many red errors after my edit, and I thought it was in a different part of the code.
+**Challenges**:
+The code showed many red errors after my edit, and I thought it was in a different part of the code.
 
-**Solution**:I checked the Problems panel and the brackets of each method, then ran the program several times: no more exceptions.
+**Solution**:
+I checked the Problems panel and the brackets of each method, then ran the program several times: no more exceptions.
 
-**Time spent**: 45 minutes
+**Time spent**:
+45 minutes
 
 ---
 
 ### Entry 4 - [November 13, 2026, 1:00 AM]
-**What I did**:Feature 2, protected the three shared statistics counters.
+**What I did**:
+Feature 2, protected the three shared statistics counters.
 
 **Details**:
 - Used one lock per counter (contextSwitchLock, completedProcessLock, serviceTimeLock) because the counters are independent
 - Protected the 3 update methods and the 3 getters, always with try/finally
 - Committed: "Feature2 Added locks to the shared statistics counters"
+- 
 **Challenges**:
 Java showed "cannot be resolved" because my lock was declared as Completedprocesslock but used as completedLock. Later a WATCHDOG appeared in the second run.
 
-**Solution**: I used the same name everywhere. The WATCHDOG came from an unlock() that was not correctly inside finally; after fixing it, all runs passed.
+**Solution**:
+I used the same name everywhere. The WATCHDOG came from an unlock() that was not correctly inside finally; after fixing it, all runs passed.
 
 
-**Time spent**:1 hour & 30 minutes
+**Time spent**:
+1 hour & 30 minutes
 
 ---
 
 ### Entry 5 - [November 13, 2026, 2:45 AM]
-**What I did**: Feature 3, replaced busy waiting with a counting semaphore.
+**What I did**: 
+Feature 3, replaced busy waiting with a counting semaphore.
 
 **Details**:
 - Added Semaphore readyCount with initial value 0 in ReadyQueue
@@ -207,12 +223,16 @@ Java showed "cannot be resolved" because my lock was declared as Completedproces
 - The CPU that sees completed == total calls release(totalCPUs) so the blocked CPUs wake up and stop
 - Verification: 42 / 20 / 127836 all correct and Busy-waiting polls = 0
 - Committed: "Feature 3: Replaced busy waiting with a counting semaphore" and removed the old TODO comments
+- 
 **Challenges**:
 The push failed with "Could not resolve host: github.com" because the internet was down.
+
 **Solution**:
    I waited for the connection to come back and pressed Sync Changes again; all commits are now on GitHub.
+   
 **Time spent**:
 1 hour & 15 minutes
+
 ---
 
 ### Entry 6 - [Optional - Date and Time]
@@ -232,13 +252,16 @@ The push failed with "Could not resolve host: github.com" because the internet w
 
 > 💡 **TIP:** Fill this in **last**, after all entries are written.
 
-**Total time spent on assignment**: [X hours]
+**Total time spent on assignment**: [5 hours]
 
 **Most challenging part**:
+Understanding why a lock that is not released causes the program to hang. After Feature 2, the WATHDOG appeared because one unlock() was not correctly inside a finally block, so the other CPUs waited forever. The semaphore shutdown in Feature 3 was also hard, because the CPUs blocked on acquire() never wake up unless the last CPU calls release(totalCPUs).
 
 **Most interesting learning**:
+A simple count++ is really three steps (read, add, write), so two CPUs can lose an update, and this bug does not appear in every run. I also learned that a semaphore lets a CPU sleep until a process is available instead of polling, so Busy-waiting polls became 0.
 
 **What I would do differently next time**:
+I would start earlier and spread the work over more days. I would run the program at least five times after every change, and write the development log during the work instead of afterwards.
 
 ---
 
