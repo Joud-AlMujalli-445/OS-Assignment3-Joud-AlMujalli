@@ -281,7 +281,7 @@ I would start earlier and spread the work over more days. I would run the progra
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+[I learned that a race condition happens when several threads read and change the same shared data, because count++ is really three steps: read, add, and write. When I ran the starter, the four CPUs crashed with a NullPointerException in ReadyQueue.snapshot(), so I saw that even reading a shared list without a lock is unsafe. I fixed this with a ReentrantLock and always released it in a finally block, so the lock is freed even if an exception happens. A critical section needs mutual exclusion, which means only one CPU can change the queue or a counter at a time. I also learned that a counting semaphore that starts at 0 lets a CPU sleep on acquire() until a process is added, instead of checking an empty queue again and again. What surprised me most was that all three counters were 0 in the starter, because the queue bug crashed the CPUs before they updated anything.]
 
 ## Question 2: What was the most challenging part of this assignment?
 
@@ -289,7 +289,7 @@ I would start earlier and spread the work over more days. I would run the progra
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+[The most challenging part was understanding why my program showed a WATCHDOG message after Feature 2. The output stopped after "CPU-2 picks P5", and nothing else was printed for about 34 seconds. At first I did not know if it was a lost update or a different problem. The cause was a lock that was not released correctly, because one unlock() was not inside a finally block, so the other CPUs waited forever. This was hard because there was no error message, the program just froze. After I fixed it, I understood why every unlock() must be inside finally, and all my runs passed.]
 
 ## Question 3: How did you overcome the challenges you faced?
 
@@ -297,7 +297,7 @@ I would start earlier and spread the work over more days. I would run the progra
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+[I worked in small steps and tested after every change. I followed the order in the README: first the queue lock, then the statistics locks, then the semaphore. After each feature I ran the program several times and only committed when the verification block was correct. When Java showed "cannot be resolved", I compared the names letter by letter and found that I wrote Completedprocesslock in one place and completedLock in another. For the watchdog problem, I checked that every lock() had an unlock() inside a finally block. I also asked for explanations when I did not understand a concept, and then I checked my code again with the verification block.]
 
 ## Question 4: Where can synchronization concepts be applied in real-world applications?
 
@@ -305,7 +305,7 @@ I would start earlier and spread the work over more days. I would run the progra
 
 **Your Answer:** *(5-7 sentences)*
 
-[Write your answer here.]
+[In banking, two transfers that update the same account at the same time can lose an update, just like my lost update on contextSwitchCount. In ticket or seat booking, a lock makes sure two customers cannot reserve the same seat, which is the same critical-section problem as two CPUs taking the same process from my ready queue. A print queue works like my ReadyQueue: programs add jobs and the printer takes them one by one, and a semaphore can let the printer sleep until a job arrives instead of busy waiting. A visitor counter on a website needs a mutex so that no increment is lost, like my shared counters. Databases also use locks to keep data correct when many users write at the same time. In all these cases the idea is the same as in my assignment: protect shared data with a lock and avoid busy waiting.]
 
 ### Optional: What would you like to learn more about?
 
