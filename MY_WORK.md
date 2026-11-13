@@ -132,69 +132,87 @@
 
 ## Your Development Log
 
-### Entry 1 - [Date and Time]
+### Entry 1 - [November 11, 2026, 7:30 PM]
 **What I did**:
-
+Set up my GitHub repository and development tools.
 **Details**:
+- Forked the starter repository, renamed it to OS-Assignment3-Joud-AlMujalli, and kept it public
+- Installed JDK, Git and VS Code, and linked VS Code to my university GitHub account
+- Cloned my repository and set my student ID on line 304
+- Committed and pushed: "set my student ID"
 
 **Challenges**:
-
+ The JDK installer had JAVA_HOME disabled by default, and I was not sure which options to select.
 **Solution**:
-
+I enabled the PATH and JAVA_HOME options, then checked the installation with java -version.
 **Time spent**:
+30 minutes
+---
+
+### Entry 2 - [November 12, 2026, 2:30 PM]
+**What I did**:
+Ran the original broken starter and saved its verification block.
+**Details**:
+- The starter crashed with a NullPointerException in ReadyQueue.snapshot() (line 153), thrown from CpuWorker.run()
+- The verification block showed expected 42 / 20 / 127836 but observed 0 for all three counters, because all 4 CPUs crashed
+- Pasted the verification block into MY_WORK.md (Question 1) and committed it
+**Challenges**:
+The VS Code terminal crashed with a PSReadLine error after I pressed Ctrl+C and other keys while the program was running.
+**Solution**:
+I closed the terminal, ran the program again, and only used Ctrl+C after selecting text.
+**Time spent**:
+1 hour
+---
+
+### Entry 3 - [November 12, 2026, 6:30 PM]
+**What I did**:Feature 1, protected the shared ready queue with a ReentrantLock.
+
+**Details**:
+- Added one ReentrantLock (queueLock) protecting both list and map
+- Used lock() + try/finally in add(), poll(), processOf() and snapshot()
+- Kept the return statements inside the try block so finally always unlocks
+- Committed: "protected the ready queue with a ReentrantLock"
+
+**Challenges**: The code showed many red errors after my edit, and I thought it was in a different part of the code.
+
+**Solution**:I checked the Problems panel and the brackets of each method, then ran the program several times: no more exceptions.
+
+**Time spent**: 45 minutes
 
 ---
 
-### Entry 2 - [Date and Time]
-**What I did**:
+### Entry 4 - [November 13, 2026, 1:00 AM]
+**What I did**:Feature 2, protected the three shared statistics counters.
 
 **Details**:
-
+- Used one lock per counter (contextSwitchLock, completedProcessLock, serviceTimeLock) because the counters are independent
+- Protected the 3 update methods and the 3 getters, always with try/finally
+- Committed: "Feature2 Added locks to the shared statistics counters"
 **Challenges**:
+Java showed "cannot be resolved" because my lock was declared as Completedprocesslock but used as completedLock. Later a WATCHDOG appeared in the second run.
 
-**Solution**:
+**Solution**: I used the same name everywhere. The WATCHDOG came from an unlock() that was not correctly inside finally; after fixing it, all runs passed.
 
-**Time spent**:
+
+**Time spent**:1 hour & 30 minutes
 
 ---
 
-### Entry 3 - [Date and Time]
-**What I did**:
+### Entry 5 - [November 13, 2026, 2:45 AM]
+**What I did**: Feature 3, replaced busy waiting with a counting semaphore.
 
 **Details**:
-
+- Added Semaphore readyCount with initial value 0 in ReadyQueue
+- add() calls release() after adding the process; CpuWorker.run() calls acquire() before poll()
+- The CPU that sees completed == total calls release(totalCPUs) so the blocked CPUs wake up and stop
+- Verification: 42 / 20 / 127836 all correct and Busy-waiting polls = 0
+- Committed: "Feature 3: Replaced busy waiting with a counting semaphore" and removed the old TODO comments
 **Challenges**:
-
+The push failed with "Could not resolve host: github.com" because the internet was down.
 **Solution**:
-
+   I waited for the connection to come back and pressed Sync Changes again; all commits are now on GitHub.
 **Time spent**:
-
----
-
-### Entry 4 - [Date and Time]
-**What I did**:
-
-**Details**:
-
-**Challenges**:
-
-**Solution**:
-
-**Time spent**:
-
----
-
-### Entry 5 - [Date and Time]
-**What I did**:
-
-**Details**:
-
-**Challenges**:
-
-**Solution**:
-
-**Time spent**:
-
+1 hour & 15 minutes
 ---
 
 ### Entry 6 - [Optional - Date and Time]
